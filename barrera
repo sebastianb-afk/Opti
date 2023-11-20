@@ -1,0 +1,41 @@
+from tabulate import tabulate
+from time import time_ns
+from scipy import optimize
+from math import log
+
+nombre_archivo = "barrera_problem_" + str(time_ns())[-4:] + ".txt"
+
+p0 = [1, 2]
+e = 0.00000001
+u = 0.1
+b = 10
+
+u_b = 10
+b_b = 0.1
+
+def f(x):
+    return (x[0]-2)**4 + (x[0]-2*x[1])**2 # funcion objetivo
+
+def g(x):
+    restr = [x[0]**2-x[1]] # restricciones de <=
+    result = map(lambda x: max(0,x)**2,restr)
+    return sum(result)
+
+
+def obj(x):
+    return f(x) + u*(g(x)) - u_b*(1/(x[0]**2-x[1]))
+
+i = 0
+data = []
+col = ["iteracion", "b", "u", "x"]
+while i < 30:
+    i+=1
+    p0 = optimize.minimize(obj, p0,method="Nelder-Mead").x
+
+    u = b*u
+    u_b = u_b*b_b
+    data.append([i, b, u, p0])
+
+with open(nombre_archivo, "w") as archivo:
+    archivo.write(tabulate(data, headers=col))
+    archivo.write("\n\nSolucion: " + str(p0))
